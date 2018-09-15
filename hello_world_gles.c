@@ -54,12 +54,6 @@
 #include <GL/glut.h>
 #endif
 
-/* Emscripten/GLUT reshape issue */
-#ifdef __EMSCRIPTEN__
-#include "emscripten/html5.h"
-int winWidth = 300, winHeight = 300;
-#endif
-
 #define STRIPS_PER_TOOTH 7
 #define VERTICES_PER_TOOTH 34
 #define GEAR_VERTEX_STRIDE 6
@@ -526,31 +520,12 @@ draw_gear(struct gear *gear, GLfloat *transform,
    glDisableVertexAttribArray(0);
 }
 
-/* Emscripten/GLUT reshape issue */
-static void
-check_for_reshape()
-{
-#ifdef __EMSCRIPTEN__
-   double canvasWidth, canvasHeight;
-   emscripten_get_element_css_size(0, &canvasWidth, &canvasHeight); /* 0 == canvas */
-   if ((int)canvasWidth != winWidth || (int)canvasHeight != winHeight)
-   {
-       winWidth = (int)canvasWidth;
-       winHeight = (int)canvasHeight;
-       glutReshapeWindow(winWidth, winHeight);
-   }
-#endif
-}
-
 /**
  * Draws the gears.
  */
 static void
 gears_draw(void)
 {
-   /* Emscripten/GLUT reshape issue */
-   check_for_reshape();
-
    const static GLfloat red[4] = { 0.8, 0.1, 0.0, 1.0 };
    const static GLfloat green[4] = { 0.0, 0.8, 0.2, 1.0 };
    const static GLfloat blue[4] = { 0.2, 0.2, 1.0, 1.0 };
@@ -587,7 +562,7 @@ gears_draw(void)
 static void
 gears_reshape(int width, int height)
 {
-    /* Update the projection matrix */
+   /* Update the projection matrix */
    perspective(ProjectionMatrix, 60.0, width / (float)height, 1.0, 1024.0);
 
    /* Set the viewport */
@@ -774,7 +749,7 @@ main(int argc, char *argv[])
 #endif
    /* Initialize the window */
    glutInit(&argc, argv);
-   glutInitWindowSize(winWidth, winHeight);
+   glutInitWindowSize(300, 300);
    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
    glutCreateWindow("es2gears");
