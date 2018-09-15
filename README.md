@@ -6,19 +6,19 @@ This is a modified version of Emscripten's test, [hello_world_gles.c](https://gi
 ## Steps
 Steps to reproduce issue:
 
-    1. Build and run original version:
+1. Build and run original version:
+```
+emcc hello_world_gles_orig.c -s WASM=0 -o hello_world_gles.js
+emrun hello_world_gles_resizable.html
+```
+2. Resize the browser window.  Note the chunky, unchanging resolution (300x300) regardless of browser window dimensions.
 
-    emcc hello_world_gles_orig.c -s WASM=0 -o hello_world_gles.js
-    emrun hello_world_gles_resizable.html
-
-    2. Resize the browser window.  Note the chunky, unchanging resolution (300x300) regardless of browser window dimensions.
-
-    3. Build and run fixed version:
-
-    emcc hello_world_gles.c -s WASM=0 -o hello_world_gles.js
-    emrun hello_world_gles_resizable.html
-
-    4. Resize the browser window.  Note the full window resolution is now used, and the window aspect ratio is properly handled.
+3. Build and run fixed version:
+```
+emcc hello_world_gles.c -s WASM=0 -o hello_world_gles.js
+emrun hello_world_gles_resizable.html
+```
+4. Resize the browser window.  Note the full window resolution is now used, and the window aspect ratio is properly handled.
 
 ## Issue
 The issue is that the glutReshapeFunc() callback is not being called when the browser window is resized.
