@@ -6,14 +6,14 @@ This is a modified version of Emscripten's test, [hello_world_gles.c](https://gi
 ## Steps
 Steps to reproduce issue:
 
-1. Build and run original version:
+1. Build and [run original version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles.html):
 ```
 emcc hello_world_gles.c -s WASM=0 -o hello_world_gles.js
 emrun hello_world_gles.html
 ```
 2. Resize the browser window.  Note the chunky resolution (300x300), unchanged regardless of browser window resizing.
 
-3. Build and run fixed version:
+3. Build and [run fixed version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles_resizable.html):
 ```
 emcc hello_world_gles_resizable.c -s WASM=0 -o hello_world_gles_resizable.js
 emrun hello_world_gles_resizable.html
