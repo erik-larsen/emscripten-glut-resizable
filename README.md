@@ -3,6 +3,8 @@
 
 This is a modified version of Emscripten's test, [hello_world_gles.c](https://github.com/kripken/emscripten/blob/incoming/tests/hello_world_gles.c), fixed to handle browser window resizing.
 
+An Emscripten issue has been [logged](https://github.com/kripken/emscripten/issues/7133).
+
 ## Steps
 Steps to reproduce issue:
 
