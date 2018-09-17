@@ -8,19 +8,15 @@ An Emscripten issue has been [logged](https://github.com/kripken/emscripten/issu
 ## Steps
 Steps to reproduce issue:
 
-1. Build and [run original version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles.html):
+1. [Run original version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles.html):
+2. Resize the browser window.  Note the chunky resolution (300x300), unchanged regardless of browser window resizing.
+3. [Run fixed version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles_resizable.html):
+4. Resize the browser window.  Note the full window resolution is now used, and the window aspect ratio is properly handled.
+5. To build if necessary:
 ```
 emcc hello_world_gles.c -s WASM=0 -o hello_world_gles.js
-emrun hello_world_gles.html
-```
-2. Resize the browser window.  Note the chunky resolution (300x300), unchanged regardless of browser window resizing.
-
-3. Build and [run fixed version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles_resizable.html):
-```
 emcc hello_world_gles_resizable.c -s WASM=0 -o hello_world_gles_resizable.js
-emrun hello_world_gles_resizable.html
 ```
-4. Resize the browser window.  Note the full window resolution is now used, and the window aspect ratio is properly handled.
 
 ## Issue
 The issue is that the glutReshapeFunc() callback is not being called when the browser window is resized.
