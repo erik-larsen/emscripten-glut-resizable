@@ -3096,9 +3096,12 @@ function copyTempDouble(ptr) {
           Module['dynCall_viiii'](GLUT.mouseFunc, button, 0/*GLUT_DOWN*/, Browser.mouseX, Browser.mouseY);
         }
       },onResize:function (event) {
-        var rect = Module['canvas'].getBoundingClientRect();
-         _glutReshapeWindow(rect.width,rect.height);
-
+          if (!(document["fullscreen"] || document["fullScreen"] || document["mozFullScreen"] || document["webkitIsFullScreen"] ||
+                document["exitFullscreen"] || document["cancelFullScreen"] || document["mozCancelFullScreen"] || document["webkitCancelFullScreen"]))
+          {
+            var rect = Module['canvas'].getBoundingClientRect();
+            _glutReshapeWindow(rect.width,rect.height);
+          }
       },onFullscreenEventChange:function (event) {
         var width;
         var height;
