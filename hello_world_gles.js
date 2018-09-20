@@ -3095,6 +3095,10 @@ function copyTempDouble(ptr) {
           GLUT.saveModifiers(event);
           Module['dynCall_viiii'](GLUT.mouseFunc, button, 0/*GLUT_DOWN*/, Browser.mouseX, Browser.mouseY);
         }
+      },onResize:function (event) {
+        var rect = Module['canvas'].getBoundingClientRect();
+         _glutReshapeWindow(rect.width,rect.height);
+
       },onFullscreenEventChange:function (event) {
         var width;
         var height;
@@ -3249,6 +3253,8 @@ function copyTempDouble(ptr) {
       // Firefox
       window.addEventListener("DOMMouseScroll", GLUT.onMouseWheel, true);
   
+      window.addEventListener("resize", GLUT.onResize, true);
+
       Browser.resizeListeners.push(function(width, height) {
         if (GLUT.reshapeFunc) {
           Module['dynCall_vii'](GLUT.reshapeFunc, width, height);
@@ -3272,6 +3278,8 @@ function copyTempDouble(ptr) {
         // Firefox
         window.removeEventListener("DOMMouseScroll", GLUT.onMouseWheel, true);
   
+        window.removeEventListener("resize", GLUT.onResize, true);
+
         Module["canvas"].width = Module["canvas"].height = 1;
       });
     }
@@ -3295,16 +3303,17 @@ function copyTempDouble(ptr) {
       }
       _glutPostRedisplay();
     }function _glutMainLoop() {
-      _glutReshapeWindow(Module['canvas'].width, Module['canvas'].height);
+      var rect = Module['canvas'].getBoundingClientRect();
+      _glutReshapeWindow(rect.width,rect.height);
       _glutPostRedisplay();
       throw 'SimulateInfiniteLoop';
     }
 
 
-  function _glutReshapeFunc(func) {
+    function _glutReshapeFunc(func) {
       GLUT.reshapeFunc = func;
-    }
-
+    }   
+    
   function _glutSpecialFunc(func) {
       GLUT.specialFunc = func;
     }
