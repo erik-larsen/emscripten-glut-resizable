@@ -2562,6 +2562,7 @@ function copyTempDouble(ptr) {
           document.addEventListener('mozfullscreenchange', fullscreenChange, false);
           document.addEventListener('webkitfullscreenchange', fullscreenChange, false);
           document.addEventListener('MSFullscreenChange', fullscreenChange, false);
+          window.removeEventListener("resize", GLUT.onResize, true);
         }
   
         // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
@@ -3096,12 +3097,12 @@ function copyTempDouble(ptr) {
           Module['dynCall_viiii'](GLUT.mouseFunc, button, 0/*GLUT_DOWN*/, Browser.mouseX, Browser.mouseY);
         }
       },onResize:function (event) {
-          if (!(document["fullscreen"] || document["fullScreen"] || document["mozFullScreen"] || document["webkitIsFullScreen"] ||
-                document["exitFullscreen"] || document["cancelFullScreen"] || document["mozCancelFullScreen"] || document["webkitCancelFullScreen"]))
+          if (!(document["fullscreen"] || document["fullScreen"] || document["mozFullScreen"] || document["webkitIsFullScreen"]))
           {
             var rect = Module['canvas'].getBoundingClientRect();
             _glutReshapeWindow(rect.width,rect.height);
           }
+        
       },onFullscreenEventChange:function (event) {
         var width;
         var height;
@@ -3115,6 +3116,8 @@ function copyTempDouble(ptr) {
           document.removeEventListener('fullscreenchange', GLUT.onFullscreenEventChange, true);
           document.removeEventListener('mozfullscreenchange', GLUT.onFullscreenEventChange, true);
           document.removeEventListener('webkitfullscreenchange', GLUT.onFullscreenEventChange, true);
+          window.addEventListener("resize", GLUT.onResize, true);
+
         }
         Browser.setCanvasSize(width, height, true); // N.B. GLUT.reshapeFunc is also registered as a canvas resize callback.
                                                     // Just call it once here.
@@ -3171,7 +3174,9 @@ function copyTempDouble(ptr) {
           });
         });
       }
-    }function _glutFullScreen() {
+    }
+    
+  function _glutFullScreen() {
       GLUT.windowX = 0; // TODO
       GLUT.windowY = 0; // TODO
       GLUT.windowWidth  = Module['canvas'].width;
@@ -3179,6 +3184,7 @@ function copyTempDouble(ptr) {
       document.addEventListener('fullscreenchange', GLUT.onFullscreenEventChange, true);
       document.addEventListener('mozfullscreenchange', GLUT.onFullscreenEventChange, true);
       document.addEventListener('webkitfullscreenchange', GLUT.onFullscreenEventChange, true);
+      window.removeEventListener("resize", GLUT.onResize, true);
       GLUT.requestFullscreen();
     }
 
@@ -3305,7 +3311,9 @@ function copyTempDouble(ptr) {
         Module['dynCall_vii'](GLUT.reshapeFunc, width, height);
       }
       _glutPostRedisplay();
-    }function _glutMainLoop() {
+    }
+    
+  function _glutMainLoop() {
       var rect = Module['canvas'].getBoundingClientRect();
       _glutReshapeWindow(rect.width,rect.height);
       _glutPostRedisplay();
@@ -3313,7 +3321,7 @@ function copyTempDouble(ptr) {
     }
 
 
-    function _glutReshapeFunc(func) {
+  function _glutReshapeFunc(func) {
       GLUT.reshapeFunc = func;
     }   
     
