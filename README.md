@@ -8,7 +8,7 @@ An Emscripten issue has been [logged](https://github.com/kripken/emscripten/issu
 ## Steps to reproduce
 Issue:
 1. [Run the original version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles.html).
-2. Resize the browser window.  Note the chunky resolution (300x300), which doesn't change regardless of browser window resizing.
+2. Resize the browser window.  Note the resolution (300x300) doesn't change regardless of browser window resizing.
 
 Fix #1:
 1. [Run the client-side fixed version](https://erik-larsen.github.io/emscripten-glut-resizable/hello_world_gles_resizable_CLIENT_fix.html).
