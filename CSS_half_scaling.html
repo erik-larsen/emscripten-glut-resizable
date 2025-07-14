@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>50% CSS canvas scaling</title>
+    <style>
+        canvas {
+            position: fixed;
+            top: 25%;
+            left: 25%;            
+            width: 50%;
+            height: 50%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        var Module = { canvas: document.getElementById('canvas') };
+    </script>
+    <script src="./hello_world_gles.js"></script>
+</body>
+</html>

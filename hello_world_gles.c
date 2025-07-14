@@ -40,12 +40,14 @@
 
 #define _GNU_SOURCE
 
+#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #include <Glut/glut.h>
@@ -601,7 +603,12 @@ gears_idle(void)
 {
    static int frames = 0;
    static double tRot0 = -1.0, tRate0 = -1.0;
-   double dt, t = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+   double dt;
+#if ANIMATE
+   double t = glutGet(GLUT_ELAPSED_TIME) / 1000.0;
+#else
+   double t = 0;
+#endif
 
    if (tRot0 < 0.0)
       tRot0 = t;
@@ -638,10 +645,13 @@ gears_idle(void)
       runs++;
       if (runs == 4) {
         int result = fps;
-#ifdef TEST_MEMORYPROFILER_ALLOCATIONS_MAP
-        result = 0;
+        assert(fps >= 15 && fps <= 500);
+#ifdef REPORT_RESULT
+        REPORT_RESULT(0);
 #endif
-        REPORT_RESULT(result);
+        printf("Done\n");
+        emscripten_force_exit(0);
+        return;
       }
 #endif
    }
