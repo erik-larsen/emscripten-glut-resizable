@@ -1,6 +1,10 @@
 # emscripten-glut-resizable
 *Emscripten GLUT browser resizing fix*
 
+## Latest info
+
+See this [PR](https://github.com/emscripten-core/emscripten/pull/24699) for the most recent code and discussion. 
+
 ## Issue
 
 When using GLUT and the window is resized with the canvas dependent upon it due to CSS scaling, the result is a stretched canvas with blocky pixel scaling:
