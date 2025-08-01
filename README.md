@@ -3,7 +3,29 @@
 
 ## Latest info
 
-See this [PR](https://github.com/emscripten-core/emscripten/pull/24699) for the most recent code and discussion. 
+[PR](https://github.com/emscripten-core/emscripten/pull/24699) has been merged!
+
+##  Debugging Emscripten-ized C/C++ in Chrome
+
+1. Build with debug info:
+```
+emcc emscripten/test/hello_world_gles.c -g -O0 -s WASM=1 -o hello_world_gles.html
+```
+
+2. Install C/C++ DevTools (DWARF) extension:
+https://developer.chrome.com/docs/devtools/wasm
+
+3. Test CSS scaling with emrun CSS_*.html:
+```
+emrun CSS_full_scaling.html
+```
+
+4. Run an emscripten test:
+```
+cd <emscripten dir>
+python test/runner.py -v browser.test_sdl_resize --browser '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
+emrun out/test/test.html
+```
 
 ## Issue
 

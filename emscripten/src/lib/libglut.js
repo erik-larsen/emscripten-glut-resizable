@@ -298,15 +298,6 @@ var LibraryGLUT = {
         {{{ makeDynCall('vii', 'GLUT.reshapeFunc') }}}(width, height);
       }
       _glutPostRedisplay();
-    },
-
-    reshapeHandler: () => {
-      // Use clientWidth and clientHeight, which include CSS scaling of the canvas
-      var canvas = Browser.getCanvas();
-      Browser.setCanvasSize(canvas.clientWidth, canvas.clientHeight, true);
-      if (GLUT.reshapeFunc) {
-        {{{ makeDynCall('vii', 'GLUT.reshapeFunc') }}}(canvas.clientWidth, canvas.clientHeight);
-      }
     }
   },
 
@@ -345,7 +336,11 @@ var LibraryGLUT = {
     // Firefox
     window.addEventListener('DOMMouseScroll', GLUT.onMouseWheel, true);
 
-    window.addEventListener('resize', GLUT.reshapeHandler, true);
+    Browser.resizeListeners.push((width, height) => {
+      if (GLUT.reshapeFunc) {
+        {{{ makeDynCall('vii', 'GLUT.reshapeFunc') }}}(width, height);
+      }
+    });
 
     addOnExit(() => {
       if (isTouchDevice) {
@@ -363,8 +358,6 @@ var LibraryGLUT = {
       window.removeEventListener('mousewheel', GLUT.onMouseWheel, true);
       // Firefox
       window.removeEventListener('DOMMouseScroll', GLUT.onMouseWheel, true);
-
-      window.removeEventListener('resize', GLUT.reshapeHandler, true);
 
       var canvas = Browser.getCanvas();
       canvas.width = canvas.height = 1;
@@ -640,9 +633,10 @@ var LibraryGLUT = {
   },
 
   glutMainLoop__proxy: 'sync',
-  glutMainLoop__deps: ['$GLUT', 'glutPostRedisplay'],
+  glutMainLoop__deps: ['$GLUT', 'glutReshapeWindow', 'glutPostRedisplay'],
   glutMainLoop: () => {
-    GLUT.reshapeHandler();
+    var canvas = Browser.getCanvas();
+    _glutReshapeWindow(canvas.width, canvas.height);
     _glutPostRedisplay();
     throw 'unwind';
   },

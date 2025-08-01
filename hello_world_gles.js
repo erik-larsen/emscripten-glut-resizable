@@ -1852,32 +1852,14 @@ async function createWasm() {
   
         function pointerLockChange() {
           var canvas = Browser.getCanvas();
-          Browser.pointerLock = document['pointerLockElement'] === canvas ||
-                                document['mozPointerLockElement'] === canvas ||
-                                document['webkitPointerLockElement'] === canvas ||
-                                document['msPointerLockElement'] === canvas;
+          Browser.pointerLock = document.pointerLockElement === canvas;
         }
         var canvas = Browser.getCanvas();
         if (canvas) {
           // forced aspect ratio can be enabled by defining 'forcedAspectRatio' on Module
           // Module['forcedAspectRatio'] = 4 / 3;
   
-          canvas.requestPointerLock = canvas['requestPointerLock'] ||
-                                      canvas['mozRequestPointerLock'] ||
-                                      canvas['webkitRequestPointerLock'] ||
-                                      canvas['msRequestPointerLock'] ||
-                                      (() => {});
-          canvas.exitPointerLock = document['exitPointerLock'] ||
-                                   document['mozExitPointerLock'] ||
-                                   document['webkitExitPointerLock'] ||
-                                   document['msExitPointerLock'] ||
-                                   (() => {}); // no-op if function does not exist
-          canvas.exitPointerLock = canvas.exitPointerLock.bind(document);
-  
           document.addEventListener('pointerlockchange', pointerLockChange, false);
-          document.addEventListener('mozpointerlockchange', pointerLockChange, false);
-          document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
-          document.addEventListener('mspointerlockchange', pointerLockChange, false);
   
           if (Module['elementPointerLock']) {
             canvas.addEventListener("click", (ev) => {
@@ -2792,14 +2774,6 @@ async function createWasm() {
         }
         _glutPostRedisplay();
       },
-  reshapeHandler:() => {
-        // Use clientWidth and clientHeight, which include CSS scaling of the canvas
-        var canvas = Browser.getCanvas();
-        Browser.setCanvasSize(canvas.clientWidth, canvas.clientHeight, true);
-        if (GLUT.reshapeFunc) {
-          getWasmTableEntry(GLUT.reshapeFunc)(canvas.clientWidth, canvas.clientHeight);
-        }
-      },
   };
   var _glutCreateWindow = (name) => {
       var contextAttributes = {
@@ -2850,6 +2824,7 @@ async function createWasm() {
   var onExits = [];
   var addOnExit = (cb) => onExits.push(cb);
   
+  
   var _glutInit = (argcp, argv) => {
       // Ignore arguments
       GLUT.initTime = Date.now();
@@ -2880,7 +2855,11 @@ async function createWasm() {
       // Firefox
       window.addEventListener('DOMMouseScroll', GLUT.onMouseWheel, true);
   
-      window.addEventListener('resize', GLUT.reshapeHandler, true);
+      Browser.resizeListeners.push((width, height) => {
+        if (GLUT.reshapeFunc) {
+          getWasmTableEntry(GLUT.reshapeFunc)(width, height);
+        }
+      });
   
       addOnExit(() => {
         if (isTouchDevice) {
@@ -2899,8 +2878,6 @@ async function createWasm() {
         // Firefox
         window.removeEventListener('DOMMouseScroll', GLUT.onMouseWheel, true);
   
-        window.removeEventListener('resize', GLUT.reshapeHandler, true);
-  
         var canvas = Browser.getCanvas();
         canvas.width = canvas.height = 1;
       });
@@ -2915,8 +2892,22 @@ async function createWasm() {
 
   
   
+  
+  
+  var _glutReshapeWindow = (width, height) => {
+      Browser.exitFullscreen();
+      Browser.setCanvasSize(width, height, true); // N.B. GLUT.reshapeFunc is also registered as a canvas resize callback.
+                                                  // Just call it once here.
+      if (GLUT.reshapeFunc) {
+        getWasmTableEntry(GLUT.reshapeFunc)(width, height);
+      }
+      _glutPostRedisplay();
+    };
+  
+  
   var _glutMainLoop = () => {
-      GLUT.reshapeHandler();
+      var canvas = Browser.getCanvas();
+      _glutReshapeWindow(canvas.width, canvas.height);
       _glutPostRedisplay();
       throw 'unwind';
     };
@@ -3119,7 +3110,6 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'registerGamepadEventCallback',
   'registerBeforeUnloadEventCallback',
   'fillBatteryEventData',
-  'battery',
   'registerBatteryEventCallback',
   'setCanvasElementSize',
   'getCanvasElementSize',
