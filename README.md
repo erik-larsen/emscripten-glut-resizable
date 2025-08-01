@@ -23,7 +23,7 @@ emrun CSS_full_scaling.html
 4. Run an emscripten test:
 ```
 cd <emscripten dir>
-python test/runner.py -v browser.test_sdl_resize --browser '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
+python test/runner.py -v browser.test_glut_resize --browser '/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
 emrun out/test/test.html
 ```
 
