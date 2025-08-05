@@ -3,7 +3,7 @@
 
 ## Latest info
 
-[PR](https://github.com/emscripten-core/emscripten/pull/24699) has been merged!
+[PR](https://github.com/emscripten-core/emscripten/pull/24699) has been merged in Emscripten 4.012.
 
 ##  Debugging Emscripten-ized C/C++ in Chrome
 
