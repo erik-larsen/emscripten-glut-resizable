@@ -699,7 +699,7 @@ async function instantiateArrayBuffer(binaryFile, imports) {
 }
 
 async function instantiateAsync(binary, binaryFile, imports) {
-  if (!binary && typeof WebAssembly.instantiateStreaming == 'function'
+  if (!binary
       // Don't use streaming for file:// delivered objects in a webview, fetch them synchronously.
       && !isFileURI(binaryFile)
       // Avoid instantiateStreaming() on Node.js environment for now, as while
@@ -918,6 +918,7 @@ async function createWasm() {
       return idx;
     };
   
+  
     /**
      * Given a pointer 'idx' to a null-terminated UTF8-encoded string in the given
      * array that contains uint8 values, returns a copy of that string as a
@@ -937,8 +938,6 @@ async function createWasm() {
         return UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr));
       }
       var str = '';
-      // If building with TextDecoder, we have already computed the string length
-      // above, so test loop end condition against that
       while (idx < endPtr) {
         // For UTF8 byte structure, see:
         // http://en.wikipedia.org/wiki/UTF-8#Description
@@ -1720,6 +1719,12 @@ async function createWasm() {
       }
     };
   
+  function getFullscreenElement() {
+      return document.fullscreenElement || document.mozFullScreenElement ||
+             document.webkitFullscreenElement || document.webkitCurrentFullScreenElement ||
+             document.msFullscreenElement;
+    }
+  
   /** @param {number=} timeout */
   var safeSetTimeout = (func, timeout) => {
       
@@ -1928,9 +1933,7 @@ async function createWasm() {
         function fullscreenChange() {
           Browser.isFullscreen = false;
           var canvasContainer = canvas.parentNode;
-          if ((document['fullscreenElement'] || document['mozFullScreenElement'] ||
-               document['msFullscreenElement'] || document['webkitFullscreenElement'] ||
-               document['webkitCurrentFullScreenElement']) === canvasContainer) {
+          if (getFullscreenElement() === canvasContainer) {
             canvas.exitFullscreen = Browser.exitFullscreen;
             if (Browser.lockPointer) canvas.requestPointerLock();
             Browser.isFullscreen = true;
@@ -2194,9 +2197,7 @@ async function createWasm() {
             h = Math.round(w / Module['forcedAspectRatio']);
           }
         }
-        if (((document['fullscreenElement'] || document['mozFullScreenElement'] ||
-             document['msFullscreenElement'] || document['webkitFullscreenElement'] ||
-             document['webkitCurrentFullScreenElement']) === canvas.parentNode) && (typeof screen != 'undefined')) {
+        if ((getFullscreenElement() === canvas.parentNode) && (typeof screen != 'undefined')) {
            var factor = Math.min(screen.width / w, screen.height / h);
            w = Math.round(w * factor);
            h = Math.round(h * factor);
@@ -2223,6 +2224,7 @@ async function createWasm() {
         }
       },
   };
+  
   
   
   
@@ -2462,10 +2464,9 @@ async function createWasm() {
   requestAnimationFrame(func) {
         if (typeof requestAnimationFrame == 'function') {
           requestAnimationFrame(func);
-          return;
+        } else {
+          MainLoop.fakeRequestAnimationFrame(func);
         }
-        var RAF = MainLoop.fakeRequestAnimationFrame;
-        RAF(func);
       },
   };
   
@@ -2754,7 +2755,7 @@ async function createWasm() {
   onFullscreenEventChange:(event) => {
         var width;
         var height;
-        if (document["fullscreen"] || document["fullScreen"] || document["mozFullScreen"] || document["webkitIsFullScreen"]) {
+        if (getFullscreenElement()) {
           width = screen["width"];
           height = screen["height"];
         } else {
@@ -2773,6 +2774,11 @@ async function createWasm() {
           getWasmTableEntry(GLUT.reshapeFunc)(width, height);
         }
         _glutPostRedisplay();
+      },
+  onResize:() => {
+        // Update canvas size to clientWidth and clientHeight, which include CSS scaling
+        var canvas = Browser.getCanvas();
+        Browser.setCanvasSize(canvas.clientWidth, canvas.clientHeight, /*noUpdates*/false);
       },
   };
   var _glutCreateWindow = (name) => {
@@ -2803,6 +2809,45 @@ async function createWasm() {
       document.addEventListener('mozfullscreenchange', GLUT.onFullscreenEventChange, true);
       document.addEventListener('webkitfullscreenchange', GLUT.onFullscreenEventChange, true);
       Browser.requestFullscreen(/*lockPointer=*/false, /*resizeCanvas=*/false);
+    };
+
+  var _glutGet = (type) => {
+      switch (type) {
+        case 100: /* GLUT_WINDOW_X */
+          return 0; /* TODO */
+        case 101: /* GLUT_WINDOW_Y */
+          return 0; /* TODO */
+        case 102: /* GLUT_WINDOW_WIDTH */
+          return Browser.getCanvas().width;
+        case 103: /* GLUT_WINDOW_HEIGHT */
+          return Browser.getCanvas().height;
+        case 200: /* GLUT_SCREEN_WIDTH */
+          return Browser.getCanvas().width;
+        case 201: /* GLUT_SCREEN_HEIGHT */
+          return Browser.getCanvas().height;
+        case 500: /* GLUT_INIT_WINDOW_X */
+          return 0; /* TODO */
+        case 501: /* GLUT_INIT_WINDOW_Y */
+          return 0; /* TODO */
+        case 502: /* GLUT_INIT_WINDOW_WIDTH */
+          return GLUT.initWindowWidth;
+        case 503: /* GLUT_INIT_WINDOW_HEIGHT */
+          return GLUT.initWindowHeight;
+        case 700: /* GLUT_ELAPSED_TIME */
+          var now = Date.now();
+          return now - GLUT.initTime;
+        case 0x0069: /* GLUT_WINDOW_STENCIL_SIZE */
+          return GLctx.getContextAttributes().stencil ? 8 : 0;
+        case 0x006A: /* GLUT_WINDOW_DEPTH_SIZE */
+          return GLctx.getContextAttributes().depth ? 8 : 0;
+        case 0x006E: /* GLUT_WINDOW_ALPHA_SIZE */
+          return GLctx.getContextAttributes().alpha ? 8 : 0;
+        case 0x0078: /* GLUT_WINDOW_NUM_SAMPLES */
+          return GLctx.getContextAttributes().antialias ? 1 : 0;
+  
+        default:
+          throw "glutGet(" + type + ") not implemented yet";
+      }
     };
 
   
@@ -2855,6 +2900,10 @@ async function createWasm() {
       // Firefox
       window.addEventListener('DOMMouseScroll', GLUT.onMouseWheel, true);
   
+      // Resize callback stage 1: update canvas which notifies resizeListeners
+      window.addEventListener('resize', GLUT.onResize, true);
+  
+      // Resize callback stage 2: updateResizeListeners notifies reshapeFunc
       Browser.resizeListeners.push((width, height) => {
         if (GLUT.reshapeFunc) {
           getWasmTableEntry(GLUT.reshapeFunc)(width, height);
@@ -2878,6 +2927,8 @@ async function createWasm() {
         // Firefox
         window.removeEventListener('DOMMouseScroll', GLUT.onMouseWheel, true);
   
+        window.removeEventListener('resize', GLUT.onResize, true);
+  
         var canvas = Browser.getCanvas();
         canvas.width = canvas.height = 1;
       });
@@ -2892,22 +2943,9 @@ async function createWasm() {
 
   
   
-  
-  
-  var _glutReshapeWindow = (width, height) => {
-      Browser.exitFullscreen();
-      Browser.setCanvasSize(width, height, true); // N.B. GLUT.reshapeFunc is also registered as a canvas resize callback.
-                                                  // Just call it once here.
-      if (GLUT.reshapeFunc) {
-        getWasmTableEntry(GLUT.reshapeFunc)(width, height);
-      }
-      _glutPostRedisplay();
-    };
-  
-  
   var _glutMainLoop = () => {
-      var canvas = Browser.getCanvas();
-      _glutReshapeWindow(canvas.width, canvas.height);
+      // Do an initial resize, since there's no window resize event on startup
+      GLUT.onResize();
       _glutPostRedisplay();
       throw 'unwind';
     };
@@ -3511,6 +3549,8 @@ var wasmImports = {
   glutDisplayFunc: _glutDisplayFunc,
   /** @export */
   glutFullScreen: _glutFullScreen,
+  /** @export */
+  glutGet: _glutGet,
   /** @export */
   glutIdleFunc: _glutIdleFunc,
   /** @export */
